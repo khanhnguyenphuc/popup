@@ -31,12 +31,6 @@
 
       Plugin.prototype = {
         init: function() {
-          var that = this;
-          this.vars = {
-            url: that.options.url,
-            modal: that.options.modal,
-            template: that.options.template
-          };
           // initialize
           this.bindCustomEvent();
         },
@@ -48,20 +42,66 @@
         showPopup: function() {
           
           var that = this;
-          var $popup = $(this.vars.template);
-          if (caches.isExistData(this.vars.url)) {
-            this.body.append(caches.data[this.vars.url]);
+          var $popup = $(this.options.template);
+
+
+          this.closePopup();
+          if (caches.isExistData(that.options.url)) {
+            $('.content', $popup).html(caches.data[that.options.url]);
+            that.body.append($popup);
+            that.findPopupElem($popup);
+            that.handleEventPopup();
           } else {
-            $.post( '/popup', {url: that.options.url}, function(data) {
-              $popup.append(data);
-              that.body.append($popup);
-              caches.data[that.vars.url] = data;
+            $.post( that.options.remote, {url: that.options.url}, function(data) {
+              $('.content', $popup).html(data);
+              caches.data[that.options.url] = data;
+              that.findPopupElem($popup);
+              that.handleEventPopup();
+          
             });
           }
-            
+          that.body.append($popup);
         },
         closePopup: function() {
+          $('.box-popup').remove();
+        },
+        handleEventPopup: function() {
+          var that = this;
+          console.log('handleEventPopup called');
+          $('.box-popup > .content').find('[data-' + pluginName + ']').click(function() {
+            console.log('button called');
+            var instance = $(this).data('pkpopup');
+            instance.showPopup();
+          });
 
+          $('.box-popup').click(function(){
+            that.closePopup();
+            console.log('box-popup called');
+          });
+          $('.box-popup > .content').click(function(e){
+            console.log('content called');
+            e.stopPropagation();
+          });
+
+          // console.log(event);
+          // var that = this;
+          // var template = $(this.options.template);
+          // var cls = template.attr('class');
+          // $('[data-' + pluginName + ']').click(function(e) {
+
+          // });
+          // $('.content', '.' + cls).click(function(e) {
+          //   // e.stopPropagation();
+          // });
+          // $('.' + cls).click(function() {
+          //   that.closePopup();
+          // });
+
+        },
+        findPopupElem: function(popup) { 
+          popup.find('[data-' + pluginName + ']').each(function() {
+            $(this)[pluginName]();
+          });
         },
         destroy: function() {
           // remove events
@@ -87,18 +127,22 @@
         modal: false,
         body: $(document.body),
         template: '<div class="box-popup">' +
+                  '<div class="content"></div>' +
                   '</div>',
-        onCallback: null
+        onCallback: null,
+        remote: '/popup'
       };
 
       $(function() {
-        $('[data-' + pluginName + ']').on('customEvent', function(){
-          $(this).click(function() {
-            var instance = $.data(this, pluginName);
-            instance.showPopup();
-          });
-        });
+        // $('[data-' + pluginName + ']').on('customEvent', function(){
+          
+        // });
         $('[data-' + pluginName + ']')[pluginName]();
+        $(document.body).delegate('[data-' + pluginName + ']', 'click', function() {
+          var instance = $(this).data('pkpopup');
+          instance.showPopup();
+        });
+
       });
 
     }(jQuery, window));
