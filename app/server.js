@@ -25,6 +25,10 @@ app.get('/me', function(req, res){
     version: '1.0.0'
   });
 });
+app.post('/popup', function(req, res){
+  var data = req.body;
+  res.render(data.url);
+});
 
 app.use(function(req, res){
   res.setHeader('Content-Type', 'text/plain');
