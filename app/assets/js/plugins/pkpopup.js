@@ -8,7 +8,7 @@
      *    modal: false,
      *    body: $(document.body),
      *    template: '<div class="box-popup">' +
-     *              '<div class="content"></div>' +
+     *              '<div class="content-popup"></div>' +
      *              '</div>',
      *    onCallback: null,
      *    remote: '/popup'
@@ -20,7 +20,7 @@
      *    showPopup
      *    closePopup
      *    handleEventPopup
-     *    findPopupElem
+     *    findBtnPopup
      *    destroy
      */
     ;(function($, window, undefined) {
@@ -47,14 +47,12 @@
       Plugin.prototype = {
         init: function() {
           // initialize
-          this.bindCustomEvent();
-        },
-        bindCustomEvent: function() {
-          // to do
           var that = this;
           this.element.on('click', function() {
             that.showPopup();
           });
+        },
+        bindCustomEvent: function() {
           $.isFunction(this.options.onCallback) && this.options.onCallback();
           this.element.trigger('customEvent');
         },
@@ -63,28 +61,30 @@
           var that = this;
           var $popup = $(this.options.template);
 
-
           this.closePopup();
           if (caches.isExistData(that.options.url)) {
-            $('.content', $popup).html(caches.data[that.options.url]);
-            $('.content', $popup).prepend(ui.close);
-            that.body.append($popup);
-            that.findPopupElem($popup);
-            that.handleEventPopup();
+            $('.content-popup', $popup).html(caches.data[that.options.url]);
+            that.handlePopup($popup);
+            that.bindCustomEvent();
           } else {
             $.post( that.options.remote, {url: that.options.url}, function(data) {
-              $('.content', $popup).html(data);
-              $('.content', $popup).prepend(ui.close);
-              that.body.append($popup);
+              $('.content-popup', $popup).html(data);
+              that.handlePopup($popup);
+              that.bindCustomEvent();
               caches.data[that.options.url] = data;
-              that.findPopupElem($popup);
-              that.handleEventPopup();
             });
           }
           
         },
         closePopup: function() {
           $('.box-popup').remove();
+        },
+        handlePopup: function($popup) {
+          $('.content-popup', $popup).prepend(ui.close);
+          $.data($popup, pluginName, this);
+          this.body.append($popup);
+          this.findBtnPopup($popup);
+          this.handleEventPopup();
         },
         handleEventPopup: function() {
           var that = this;
@@ -98,14 +98,14 @@
               that.closePopup();
               e.stopPropagation();
             });
-            $('.box-popup > .content').click(function(e){
+            $('.box-popup > .content-popup').click(function(e){
               console.log('content called');
               e.stopPropagation();
             });
           }
             
         },
-        findPopupElem: function(popup) { 
+        findBtnPopup: function(popup) { 
           popup.find('[data-' + pluginName + ']').each(function() {
             $(this)[pluginName]();
           });
@@ -135,7 +135,7 @@
         modal: false,
         body: $(document.body),
         template: '<div class="box-popup">' +
-                  '<div class="content"></div>' +
+                  '<div class="content-popup"></div>' +
                   '</div>',
         onCallback: null,
         remote: '/popup'
