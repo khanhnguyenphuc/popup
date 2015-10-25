@@ -19,6 +19,7 @@
      *    bindCustomEvent
      *    showPopup
      *    closePopup
+     *    handlePopup
      *    handleEventPopup
      *    findBtnPopup
      *    destroy
@@ -27,14 +28,19 @@
       'use strict';
 
       var pluginName = 'pkpopup';
+      /*
+      * caches {url: {
+          html: '',
+          data: {}
+        }
+      */
       var caches = {
         data: {},
         isExistUrl: function(url) {
           return !!this.data[url];
         },
         isExistData: function(url, data) {
-          if (!data) {data = {};}
-          return $(caches.data[url][data]).not(data).get().length === 0 && $(data).not(caches.data[url][data]).get().length === 0;
+          return JSON.stringify(caches.data[url].data) === JSON.stringify(data);
         }
       };
       var ui = {
@@ -66,19 +72,30 @@
           var $popup = $(this.options.template);
 
           this.closePopup();
-          if (caches.isExistUrl(that.options.url) && caches.isExistData(that.options.url, that.options.data)) {
-            $('.content-pkpopup', $popup).html(caches.data[that.options.url]);
+
+          // Custom css for popup content
+          if (this.options.css) {
+            $('.content-pkpopup', $popup).css(this.options.css);
+          }
+          /* Check Exist url
+          * if exist then get from caches
+          * else load ajax to get html and add to cachaes
+          */
+          var data = {};
+          if (that.options.data) { data = that.options.data; }
+          
+          if (caches.isExistUrl(that.options.url) && caches.isExistData(that.options.url, data)) {
+            $('.content-pkpopup', $popup).html(caches.data[that.options.url].html);
             that.handlePopup($popup);
             that.bindCustomEvent();
           } else {
-            var data = {};
-            if (that.options.data) { data = that.options.data; }
+            
             $.post( that.options.remote, {url: that.options.url, data: data}, function(result) {
               $('.content-pkpopup', $popup).html(result);
               that.handlePopup($popup);
               that.bindCustomEvent();
               caches.data[that.options.url] = {
-                url: result,
+                html: result,
                 data: data
               };
             });

@@ -7,6 +7,11 @@ $(function () {
 			$('.btn-close').on('click', function() {
 				$('.btn-pop3').pkpopup('closePopup')
 			});
+		},
+		css: {
+			width: '300px',
+			height: '200px',
+			left: '20%'
 		}
 	});
 	$('.btn-pop4').pkpopup({
