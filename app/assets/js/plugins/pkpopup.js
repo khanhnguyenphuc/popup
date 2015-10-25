@@ -7,8 +7,8 @@
      *    url: '',
      *    modal: false,
      *    body: $(document.body),
-     *    template: '<div class="box-popup">' +
-     *              '<div class="content-popup"></div>' +
+     *    template: '<div class="box-pkpopup">' +
+     *              '<div class="content-pkpopup"></div>' +
      *              '</div>',
      *    onCallback: null,
      *    remote: '/popup'
@@ -29,8 +29,12 @@
       var pluginName = 'pkpopup';
       var caches = {
         data: {},
-        isExistData: function(url) {
+        isExistUrl: function(url) {
           return !!this.data[url];
+        },
+        isExistData: function(url, data) {
+          if (!data) {data = {};}
+          return $(caches.data[url][data]).not(data).get().length === 0 && $(data).not(caches.data[url][data]).get().length === 0;
         }
       };
       var ui = {
@@ -62,25 +66,30 @@
           var $popup = $(this.options.template);
 
           this.closePopup();
-          if (caches.isExistData(that.options.url)) {
-            $('.content-popup', $popup).html(caches.data[that.options.url]);
+          if (caches.isExistUrl(that.options.url) && caches.isExistData(that.options.url, that.options.data)) {
+            $('.content-pkpopup', $popup).html(caches.data[that.options.url]);
             that.handlePopup($popup);
             that.bindCustomEvent();
           } else {
-            $.post( that.options.remote, {url: that.options.url}, function(data) {
-              $('.content-popup', $popup).html(data);
+            var data = {};
+            if (that.options.data) { data = that.options.data; }
+            $.post( that.options.remote, {url: that.options.url, data: data}, function(result) {
+              $('.content-pkpopup', $popup).html(result);
               that.handlePopup($popup);
               that.bindCustomEvent();
-              caches.data[that.options.url] = data;
+              caches.data[that.options.url] = {
+                url: result,
+                data: data
+              };
             });
           }
           
         },
         closePopup: function() {
-          $('.box-popup').remove();
+          $('.box-pkpopup').remove();
         },
         handlePopup: function($popup) {
-          $('.content-popup', $popup).prepend(ui.close);
+          $('.content-pkpopup', $popup).prepend(ui.close);
           $.data($popup, pluginName, this);
           this.body.append($popup);
           this.findBtnPopup($popup);
@@ -89,16 +98,16 @@
         handleEventPopup: function() {
           var that = this;
 
-          $('.box-popup .close').click(function(e) {
+          $('.box-pkpopup .close').click(function(e) {
             that.closePopup();
             e.stopPropagation();
           });
           if (!that.options.modal) {
-            $('.box-popup').click(function(e){
+            $('.box-pkpopup').click(function(e){
               that.closePopup();
               e.stopPropagation();
             });
-            $('.box-popup > .content-popup').click(function(e){
+            $('.box-pkpopup > .content-pkpopup').click(function(e){
               console.log('content called');
               e.stopPropagation();
             });
@@ -134,8 +143,8 @@
         url: '',
         modal: false,
         body: $(document.body),
-        template: '<div class="box-popup">' +
-                  '<div class="content-popup"></div>' +
+        template: '<div class="box-pkpopup">' +
+                  '<div class="content-pkpopup"></div>' +
                   '</div>',
         onCallback: null,
         remote: '/popup'

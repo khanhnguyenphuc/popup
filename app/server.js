@@ -27,7 +27,7 @@ app.get('/me', function(req, res){
 });
 app.post('/popup', function(req, res){
   var data = req.body;
-  res.render(data.url);
+  res.render(data.url, data.data);
 });
 
 app.use(function(req, res){
