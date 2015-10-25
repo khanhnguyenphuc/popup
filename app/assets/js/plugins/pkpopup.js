@@ -1,14 +1,26 @@
 /**
-     *  @name plugin
-     *  @description description
+     *  @name pkpopup
+     *  @description get html into popup by ajax
      *  @version 1.0
      *  @options
-     *    option
+     *    element: null,
+     *    url: '',
+     *    modal: false,
+     *    body: $(document.body),
+     *    template: '<div class="box-popup">' +
+     *              '<div class="content"></div>' +
+     *              '</div>',
+     *    onCallback: null,
+     *    remote: '/popup'
      *  @events
-     *    event
+     *    click
      *  @methods
      *    init
-     *    publicMethod
+     *    bindCustomEvent
+     *    showPopup
+     *    closePopup
+     *    handleEventPopup
+     *    findPopupElem
      *    destroy
      */
     ;(function($, window, undefined) {
@@ -20,6 +32,9 @@
         isExistData: function(url) {
           return !!this.data[url];
         }
+      };
+      var ui = {
+        close: '<button type="button" class="close" title="Close"><span aria-hidden="true">×</span></button>'
       };
 
       function Plugin(element, options) {
@@ -36,6 +51,10 @@
         },
         bindCustomEvent: function() {
           // to do
+          var that = this;
+          this.element.on('click', function() {
+            that.showPopup();
+          });
           $.isFunction(this.options.onCallback) && this.options.onCallback();
           this.element.trigger('customEvent');
         },
@@ -48,55 +67,43 @@
           this.closePopup();
           if (caches.isExistData(that.options.url)) {
             $('.content', $popup).html(caches.data[that.options.url]);
+            $('.content', $popup).prepend(ui.close);
             that.body.append($popup);
             that.findPopupElem($popup);
             that.handleEventPopup();
           } else {
             $.post( that.options.remote, {url: that.options.url}, function(data) {
               $('.content', $popup).html(data);
+              $('.content', $popup).prepend(ui.close);
+              that.body.append($popup);
               caches.data[that.options.url] = data;
               that.findPopupElem($popup);
               that.handleEventPopup();
-          
             });
           }
-          that.body.append($popup);
+          
         },
         closePopup: function() {
           $('.box-popup').remove();
         },
         handleEventPopup: function() {
           var that = this;
-          console.log('handleEventPopup called');
-          $('.box-popup > .content').find('[data-' + pluginName + ']').click(function() {
-            console.log('button called');
-            var instance = $(this).data('pkpopup');
-            instance.showPopup();
-          });
 
-          $('.box-popup').click(function(){
+          $('.box-popup .close').click(function(e) {
             that.closePopup();
-            console.log('box-popup called');
-          });
-          $('.box-popup > .content').click(function(e){
-            console.log('content called');
             e.stopPropagation();
           });
-
-          // console.log(event);
-          // var that = this;
-          // var template = $(this.options.template);
-          // var cls = template.attr('class');
-          // $('[data-' + pluginName + ']').click(function(e) {
-
-          // });
-          // $('.content', '.' + cls).click(function(e) {
-          //   // e.stopPropagation();
-          // });
-          // $('.' + cls).click(function() {
-          //   that.closePopup();
-          // });
-
+          if (!that.options.modal) {
+            $('.box-popup').click(function(e){
+              that.closePopup();
+              e.stopPropagation();
+            });
+            $('.box-popup > .content').click(function(e){
+              console.log('content called');
+              e.stopPropagation();
+            });
+          }
+            
         },
         findPopupElem: function(popup) { 
           popup.find('[data-' + pluginName + ']').each(function() {
@@ -123,6 +130,7 @@
       };
 
       $.fn[pluginName].defaults = {
+        element: null,
         url: '',
         modal: false,
         body: $(document.body),
@@ -134,15 +142,7 @@
       };
 
       $(function() {
-        // $('[data-' + pluginName + ']').on('customEvent', function(){
-          
-        // });
         $('[data-' + pluginName + ']')[pluginName]();
-        $(document.body).delegate('[data-' + pluginName + ']', 'click', function() {
-          var instance = $(this).data('pkpopup');
-          instance.showPopup();
-        });
-
       });
 
     }(jQuery, window));

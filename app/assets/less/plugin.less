@@ -9,9 +9,7 @@
     right: 0;
     bottom: 0;
     border: 1px solid green;
-    opacity: .4;
-    background: black;
-    color: black;
+    background: rgba(51, 51, 51, 0.21);
     transition: opacity .15s linear;
 }
 .box-popup .content {
@@ -20,10 +18,26 @@
     background-color: #fff;
     -webkit-background-clip: padding-box;
     background-clip: padding-box;
-    border: 1px solid #999;
     border: 1px solid rgba(0,0,0,.2);
     border-radius: 6px;
     outline: 0;
     -webkit-box-shadow: 0 3px 9px rgba(0,0,0,.5);
     box-shadow: 0 3px 9px rgba(0,0,0,.5);
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 400px;
+}
+.box-popup .close {
+	position: absolute;
+	right: 5px;
+    -webkit-appearance: none;
+    padding: 0;
+    background: 0 0;
+    border: 0;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
 }
